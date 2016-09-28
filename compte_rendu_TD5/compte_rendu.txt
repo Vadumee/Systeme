@@ -1,0 +1,193 @@
+TD 5 Système : Git pratique - No Fear
+
+Creation du repository :
+
+- On peut observer divers dossiers dans .git : branches, config, description, HEAD,
+hooks, info, objetcts et refs. Parmis ces dossiers, on connait refs, objects et HEAD.
+
+- Le dossier .git/objects contient deux dossier, pack et info, tous les deux vides.
+C'est normal, puisque le dépot vient tout juste d'être initialisé, et donc il n'y a
+aucun contenu.
+
+- Le dossier .git/refs/heads ne contient absolument rien, puisqu'aucun commit n'a
+encore été éffectué, il n'y a donc qu'une branche master vide.
+
+- Le fichier HEAD contient effectivement une référence vers heads/master, qui pourtant
+n'existe pas, c'est explicable par le fait que le premier commit créer certainement
+la référence en même temps que les fichiers liés aux modifications apportées par
+ce commit.
+
+- Le fichier index n'existe pas encore, car il n'y a pas encore d'index (vu que
+le répository vient seulement d'être initialisé).
+
+Création du premier commit :
+
+- On peut noter directement l'apparition du dossier index dans .git, en effet, comme
+on ajoute des fichiers dans la staging area, git créer l'index pour pouvoir faire
+le commit. Il y a aussi apparition d'un dossier dans .git/objects, il correspond au
+fichier qui à été crée (il s'agit d'un enchainement de deux dossier, dont le nom
+combinné forme le sha1 de l'objet crée).
+
+- En effectuant la commande git cat-file -p <nom du dossier + nom du fichier>,
+la console nous affiche le contenu exact du fichier f1.txt, on en déduit donc
+que git utilise les fichier de .git/objects pour recréer l'objet à partir du sha1.
+
+- Après avoir modifié le fichier f1.txt et l'avoir ajouté, un autre dossier est crée
+dans .git/objects. En effet, le fichier modifié à un sha1 totalement différent de son
+ancienne version (la moindre modification change totalement le hash).
+
+- Lorsque l'on fait la commande "git prune", il ne semble rien se passer, mais en
+regardant dans le dossier .git/objects, on peut observer qu'un dossier à disparu, plus
+précisement (et notemment grace à l'aide du professeur Layton), on a pu voir que le dossier
+disparu est en réalité le dossier correspondant à la première version de notre f1.txt.
+On peut donc déduire de cette enquête et de ces observations que le git prune permet
+de supprimer les dossiers correspondant à des anciennes versions de fichiers dans le
+répértoire .git/objects.
+
+- Lors du premier commit, on observe l'apparition de deux dossiers dans .git/objects,
+ils contiennent probablement des informations sur le commit qui vient d'être effectué, c
+car aucune modification de fichier n'a été faite entre le add et le commit.
+En utilisant le git cat-file, on se rend compte qu'un des deux fichiers donne diverses
+informations concernant les fichiers (appellés blob), on peut notamment voir le nom
+et le hash du fichier en question. L'autre fichier contient les information sur le
+commit (auteur, date) et le hash du tree correspondant.
+
+Ajout d'un répértoire et d'un autre fichier :
+
+- La raison pour laquelle un seul fichier à été ajouté lors des ajouts est que git
+ne prend pas en compte les dossiers en soi, il ne s'intéresse qu'aux fichiers (qui seront
+des blob), il préfère transformer les dossier en tree.
+
+Branches :
+
+- Le contenu de .git/HEAD est une référence vers la tête de la branche master (le
+fichier contient le hash de l'objet contenant les tree), qui contient la références
+à ses tree. C'est bien conforme à nos attentes, vu qu'une seule branche existe.
+
+- En supprimant le dossier r1, git nous indique que nous sommes désormais sur une
+tête détachée, et le .git/HEAD contient maintenant un hash, il s'agit probablement
+de celui de la branche correspondant à la tête détachée.
+
+- Le dossier .git/refs contient un dossier head et un dossier tags, le dernier est
+vide tandis que head contient deux dossiers : master et branch1.
+Le fichier HEAD donne maintenant en référence le chemin qui mène à la branch1 dans
+refs.
+
+- En effectuant le commit de la modif de f1, on peut noter que les modifications
+ont bien eue lieu. HEAD n'a pas changé, car on travaille toujours sur la branche
+'branch1', il est donc normal qu'il nous donne toujours la même référence.
+
+- En revenant sur la branche master, on s'apperçoit que le .git/HEAD à changé,
+la référence étant revenu sur master, cependant il y a toujours autant d'objets
+dans le dossier objets, car git a besoin de garder toutes les références et de leur
+contenu pour pouvoir passer sur les autres branches/versions.
+
+- La création et le changement de branches effectue simplement un changement de
+référence pour le fichier contenant tous les tree de cette dernière, c'est donc un
+moyen très efficace en terme d'éfficacité, car il n'y a quasiment aucune modification
+en soi, tous les objets étant crées à chaque ajout et commit, il y a simplement un
+changement de référence. Pour la création de branche, git créer simplement un dossier
+contenant les références vers le contenu actuel et met la référence du head vers
+cette nouvelle branche.
+Le seul réel danger (négligeable) est la collision de deux hash.
+
+Revenir en arrière :
+
+- Contenu du commit :
+
+tree 6a8fa6d5e147942eadc387f31ea78d7465b940e5
+parent 593aa452aa77b7975a281270b1929bfed8b40d84
+author Moi <david.lebrun.54@gmail.com> 1474623365 +0200
+committer Moi <david.lebrun.54@gmail.com> 1474623365 +0200
+
+ajout de dossier et fichier
+
+-> après modification puis ajout, lorsque l'on fait un commit --amend, on observe
+que le sha1 est 8cf9ed64ff0c0abc39ed335c9823cf25d63909e2, il a été modifié.
+Comme il s'agit d'une modification d'un commit, le sha1 du parent n'a pas changé
+dans l'objet, mais le sha1 du tree, oui, car dès qu'il y a modification d'un fichier
+cela entraîne modification du sha1, ce que l'on vient de faire nous prouve que c'est
+aussi valable pour les tree et les commit.
+
+- sha1 des 4 derniers commit :
+8cf9ed64ff0c0abc39ed335c9823cf25d63909e2
+83009b4aca5d34e96ca6d8380811c8023c9ea6e8
+46729461531e369e2cd991dcaff1175ba0bcac11
+59f49a4e566536659d607804fec25acdefab3128
+
+reset soft :
+    - le git log nous montre commit_2 comme étant le dernier, le 3 n'étant plus
+    affiché
+    - le git status nous montre que les 2 modifications sont toujours présentes.
+    - HEAD nous référe au fichier master dans refs, celui-ci contient le sha1 du
+    commit_2.
+
+reset mixed :
+    - le git log nous montre commit_1 comme étant le dernier, le 2 et 3 n'étant plus
+    affichés.
+    - le git status nous montre que les modifications indéxées ont été supprimées.
+    Cepandant, les modifications locales subsistent.
+    - La référence du head est devenue la référence vers le fichier correspondant au
+    commit_1.
+
+reset hard :
+    - le git log montre le commit_avant_1 comme étant le dernier commit
+    - il n'y a plus aucunes modifications, locales et/ou indéxées.
+    - la référence du head est devenue  la référence vers le fichier correspondant au
+    commit_avant_1.
+
+Dans tous les cas, la modification du contenu de HEAD est normale, car git modifie
+simplement les références, bien que l'on perde les modifications locales et indéxées
+des commits, git garde quand même toutes les modifications dans ses fichiers, on n'y
+a simplement plus accès.
+
+Travail coopératif :
+
+- Dans le repo distant, rien n'a changé, car il n'y a encore aucun lien réel entre
+le repo distant et local. C'est tout à fait normal sachant que l'on a simplement crée
+un repo local, il n'y a eu aucun ajout/modif dessus, et ni sur le repo distant.
+
+- Dans le repo local, on observe qu'il n'y a que la branche master dans refs, branch1
+n'étant pas présent. Cela est du au fait que le clonage à été effectué lorsque le head
+était placé sur la branche master, le repo local n'avait donc pas la référence pour
+accéder à branch1.
+
+sha1 du commit distant :
+7cb74c5b7ba11fcc6e6787bfa8d8f65affcbb69c
+
+- On peut voir sur le repo local, en faisant un git log, puis en vérifiant dans le
+dossier objects, que le sha1 correspondant au dernier commit du repo distant n'éxiste.
+C'est tout à fait normal, car le repo local ne track ni ne met à jour en temps réel
+ce qui est modifié sur le repo distant, il est nécessaire de le mettre à jour manuellement.
+
+sha1 du commit local :
+4152df2d5c21a5ecc56fbf164afcc0c63cb8be8a
+
+- On peut noter l'apparition entre autre du dossier et fichier correspondant au sha1
+du commit distant, ainsi que les objets correspondant aux modifications effectuées.
+Dans HEAD, la référence pointe toujours vers la ref de master, qui contient le sha1
+du dernier commit local (et qui est toujours la seule branche présente en local).
+En faisant un git status, git nous indique que la branche locale et distante ont
+divergé, il est donc nécessaire de faire un git pull afin de récupérer les modifications
+faites sur le repo distant.
+
+- Après avoir commit une modif sur le repo distant, on pull sur le local, cepandant,
+git nous indique qu'un conflit est présent, car des modifications différentes ont
+été faites sur un même fichier à la fois sur le repo distant et sur le local, git
+ne sait donc pas lesquelles de ces modifications sont les bonnes.
+
+local
+refs/heads/master : 67b7d32f8df5a73148365cc151ac7a8e84ef3fa7
+refs/remotes/origin/master : b0dd5d44b7e046888ffda0070b09f5b00e7aa5c2
+
+le sha1 de master dans le repo distant est égal au sha1 de refs/remotes/origin/master
+C'est tout à fait normal, car refs/remotes/origin/master est justement une référence
+au sha1 du dernier commit de master dans le repo distant, c'est pour cela qu'ils sont
+égaux.
+
+- Lorsque l'on push, on peut observer que le fichier refs/origin/master est modifié
+en local, car lors du push, le refs/heads/master prend en référence le dernier commit
+effectué en local.
+
+- En effectuant toutes les manipulations, on vérifie dans le refs/heads et on peut
+voir que la branche branch_local est maintenant bien présente dans le repo distant.
